@@ -1,0 +1,392 @@
+diff --git a/node_modules/@vant/cli/lib/commands/build.js b/node_modules/@vant/cli/lib/commands/build.js
+index b3e47a4..5726ea6 100644
+--- a/node_modules/@vant/cli/lib/commands/build.js
++++ b/node_modules/@vant/cli/lib/commands/build.js
+@@ -74,14 +74,14 @@ async function buildPacakgeEntry() {
+     });
+     common_1.setModuleEnv('esmodule');
+     await compile_js_1.compileJs(esEntryFile);
+-    gen_package_style_1.genPacakgeStyle({
++    await gen_package_style_1.genPacakgeStyle({
+         outputPath: styleEntryFile,
+         pathResolver: (path) => path.replace(constant_1.SRC_DIR, '.'),
+     });
+     common_1.setModuleEnv('commonjs');
+     await fs_extra_1.copy(esEntryFile, libEntryFile);
+     await compile_js_1.compileJs(libEntryFile);
+-    await compile_style_1.compileStyle(styleEntryFile);
++    await compile_style_1.compileStyle(styleEntryFile,true);
+ }
+ async function buildPackages() {
+     common_1.setModuleEnv('esmodule');
+diff --git a/node_modules/@vant/cli/lib/commands/lint.js b/node_modules/@vant/cli/lib/commands/lint.js
+index b497aeb..1061f8c 100644
+--- a/node_modules/@vant/cli/lib/commands/lint.js
++++ b/node_modules/@vant/cli/lib/commands/lint.js
+@@ -32,7 +32,7 @@ function eslint() {
+     });
+ }
+ function stylelint() {
+-    return runCommand('stylelint', ['src/**/*.css', 'src/**/*.vue', 'src/**/*.less', 'src/**/*.sass', '--fix'], {
++    return runCommand('stylelint', ['src/**/*.css', 'src/**/*.vue', 'src/**/*.less', 'src/**/*.scss', '--fix'], {
+         start: 'Running stylelint...',
+         succeed: 'Stylelint Passed.',
+         failed: 'Stylelint failed!',
+diff --git a/node_modules/@vant/cli/lib/compiler/compile-style.d.ts b/node_modules/@vant/cli/lib/compiler/compile-style.d.ts
+index 84434ec..f6a3643 100644
+--- a/node_modules/@vant/cli/lib/compiler/compile-style.d.ts
++++ b/node_modules/@vant/cli/lib/compiler/compile-style.d.ts
+@@ -1 +1,2 @@
+ export declare function compileStyle(filePath: string): Promise<void>;
++export declare function compileFile(filePath: string): Promise<void>;
+diff --git a/node_modules/@vant/cli/lib/compiler/compile-style.js b/node_modules/@vant/cli/lib/compiler/compile-style.js
+index c332fee..a082622 100644
+--- a/node_modules/@vant/cli/lib/compiler/compile-style.js
++++ b/node_modules/@vant/cli/lib/compiler/compile-style.js
+@@ -1,6 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.compileStyle = void 0;
++exports.compileFile = void 0;
+ const path_1 = require("path");
+ const fs_1 = require("fs");
+ const common_1 = require("../common");
+@@ -8,6 +9,7 @@ const compile_css_1 = require("./compile-css");
+ const compile_less_1 = require("./compile-less");
+ const compile_sass_1 = require("./compile-sass");
+ const logger_1 = require("../common/logger");
++const constant_1 = require("../common/constant");
+ async function compileFile(filePath) {
+     const parsedPath = path_1.parse(filePath);
+     try {
+@@ -21,14 +23,26 @@ async function compileFile(filePath) {
+         }
+         const source = fs_1.readFileSync(filePath, 'utf-8');
+         return await compile_css_1.compileCss(source);
+-    }
+-    catch (err) {
++    } catch (err) {
+         logger_1.consola.error('Compile style failed: ' + filePath);
+         throw err;
+     }
+ }
+-async function compileStyle(filePath) {
+-    const css = await compileFile(filePath);
++async function compileStyle(filePath, isEntryConcatFiles) {
++    let css;
++    if (isEntryConcatFiles) {
++        const content = fs_1.readFileSync(filePath, 'utf-8');
++        let concatCssPromiseAry = [];
++        content.split('\n').forEach(item => {
++            let import_path = path_1.join(constant_1.LIB_DIR, item.split('\"')[1]);
++            concatCssPromiseAry.push(compileFile(import_path))
++        });
++        css = await Promise.all(concatCssPromiseAry);
++        css = css.join('');
++    } else {
++        css = await compileFile(filePath);
++    }
+     fs_1.writeFileSync(common_1.replaceExt(filePath, '.css'), css);
+ }
+ exports.compileStyle = compileStyle;
++exports.compileFile = compileFile;
+diff --git a/node_modules/@vant/cli/lib/compiler/gen-package-entry.js b/node_modules/@vant/cli/lib/compiler/gen-package-entry.js
+index 1325a14..ba89be0 100644
+--- a/node_modules/@vant/cli/lib/compiler/gen-package-entry.js
++++ b/node_modules/@vant/cli/lib/compiler/gen-package-entry.js
+@@ -5,20 +5,23 @@ const lodash_1 = require("lodash");
+ const path_1 = require("path");
+ const common_1 = require("../common");
+ const constant_1 = require("../common/constant");
++
+ function genImports(components, options) {
+     return components
+         .map(name => {
+-        let path = path_1.join(constant_1.SRC_DIR, name);
+-        if (options.pathResolver) {
+-            path = options.pathResolver(path);
+-        }
+-        return `import ${common_1.pascalize(name)} from '${common_1.normalizePath(path)}';`;
+-    })
++            let path = path_1.join(constant_1.SRC_DIR, name);
++            if (options.pathResolver) {
++                path = options.pathResolver(path);
++            }
++            return `import ${common_1.pascalize(name)} from '${common_1.normalizePath(path)}';`;
++        })
+         .join('\n');
+ }
++
+ function genExports(names) {
+     return names.map(name => `${name}`).join(',\n  ');
+ }
++
+ function genPackageEntry(options) {
+     const names = common_1.getComponents();
+     const vantConfig = constant_1.getVantConfig();
+diff --git a/node_modules/@vant/cli/lib/compiler/gen-package-style.d.ts b/node_modules/@vant/cli/lib/compiler/gen-package-style.d.ts
+index b31d82e..7f3265d 100644
+--- a/node_modules/@vant/cli/lib/compiler/gen-package-style.d.ts
++++ b/node_modules/@vant/cli/lib/compiler/gen-package-style.d.ts
+@@ -2,5 +2,6 @@ declare type Options = {
+     outputPath: string;
+     pathResolver?: (path: string) => string;
+ };
+-export declare function genPacakgeStyle(options: Options): void;
++export declare function genPacakgeStyle(options: Options): void
++export declare function genPacakgeStyleCssAsync(options: Options): Promise<any>
+ export {};
+diff --git a/node_modules/@vant/cli/lib/compiler/gen-package-style.js b/node_modules/@vant/cli/lib/compiler/gen-package-style.js
+index 65c1e29..74ada6f 100644
+--- a/node_modules/@vant/cli/lib/compiler/gen-package-style.js
++++ b/node_modules/@vant/cli/lib/compiler/gen-package-style.js
+@@ -1,11 +1,14 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.genPacakgeStyle = void 0;
++exports.genPacakgeStyleCssAsync = void 0;
+ const path_1 = require("path");
+ const fs_extra_1 = require("fs-extra");
+ const common_1 = require("../common");
++const style_1 = require("./compile-style");
+ const css_1 = require("../common/css");
+ const constant_1 = require("../common/constant");
++const { BuildTarget } = require('@vant/cli/lib/common');
+ function genPacakgeStyle(options) {
+     const styleDepsJson = require(constant_1.STYPE_DEPS_JSON_FILE);
+     const ext = '.' + css_1.CSS_LANG;
+@@ -15,21 +18,77 @@ function genPacakgeStyle(options) {
+         if (options.pathResolver) {
+             baseFile = options.pathResolver(baseFile);
+         }
+-        content += `@import "${common_1.normalizePath(baseFile)}";\n`;
++        content += `${options.entryType==='js' ? '':'@'}import "${common_1.normalizePath(baseFile)}";\n`;
+     }
+     content += styleDepsJson.sequence
+         .map((name) => {
+-        let path = path_1.join(constant_1.SRC_DIR, `${name}/index${ext}`);
+-        if (!fs_extra_1.existsSync(path)) {
+-            return '';
+-        }
+-        if (options.pathResolver) {
+-            path = options.pathResolver(path);
+-        }
+-        return `@import "${common_1.normalizePath(path)}";`;
+-    })
++            let path = path_1.join(constant_1.SRC_DIR, `${name}/index${ext}`);
++            if (!fs_extra_1.existsSync(path)) {
++                return '';
++            }
++            if (options.pathResolver) {
++                path = options.pathResolver(path);
++            }
++            return `${options.entryType==='js' ? '':'@'}import "${common_1.normalizePath(path)}";`;
++        })
+         .filter((item) => !!item)
+         .join('\n');
++    if(options.entryType==='js'){
++      return content
++    }
+     common_1.smartOutputFile(options.outputPath, content);
++    // try {
++    //     if (options.isEntryConcatFiles) {
++    //         let concatCssPromiseAry = [];
++    //         content.split('\n').forEach(item => {
++    //             concatCssPromiseAry.push(style_1.compileFile(item.split('\"')[1]))
++    //         });
++    //         let css_content = await Promise.all(concatCssPromiseAry);
++    //         common_1.smartOutputFile(options.outputPath, css_content.join(''));
++    //         await Promise.resolve();
++    //     } else {
++    //         common_1.smartOutputFile(options.outputPath, content);
++    //         await Promise.resolve();
++    //     }
++    // } catch (err) {
++    //     console.log('gen-package-style err:::', err)
++    // }
++}
++async function genPacakgeStyleCssAsync(options) {
++  const styleDepsJson = require(constant_1.STYPE_DEPS_JSON_FILE);
++  const ext = '.' + css_1.CSS_LANG;
++  let content = '';
++  let baseFile = css_1.getCssBaseFile();
++  if (baseFile) {
++    if (options.pathResolver) {
++      baseFile = options.pathResolver(baseFile);
++    }
++    content += `@import "${common_1.normalizePath(baseFile)}";\n`;
++  }
++  content += styleDepsJson.sequence
++    .map((name) => {
++      let path = path_1.join(constant_1.SRC_DIR, `${name}/index${ext}`);
++      if (!fs_extra_1.existsSync(path)) {
++        return '';
++      }
++      if (options.pathResolver) {
++        path = options.pathResolver(path);
++      }
++      return `@import "${common_1.normalizePath(path)}";`;
++    })
++    .filter((item) => !!item)
++    .join('\n');
++  try {
++    let concatCssPromiseAry = [];
++    content.split('\n').forEach(item => {
++      concatCssPromiseAry.push(style_1.compileFile(item.split('\"')[1]))
++    });
++    let css_content = await Promise.all(concatCssPromiseAry);
++    common_1.smartOutputFile(options.outputPath, css_content.join(''));
++    await Promise.resolve();
++  } catch (err) {
++      console.log('gen-package-style-async err:::', err)
++  }
+ }
+ exports.genPacakgeStyle = genPacakgeStyle;
++exports.genPacakgeStyleCssAsync = genPacakgeStyleCssAsync;
+diff --git a/node_modules/@vant/cli/lib/compiler/gen-site-desktop-shared.js b/node_modules/@vant/cli/lib/compiler/gen-site-desktop-shared.js
+index 54a7667..7df3f47 100644
+--- a/node_modules/@vant/cli/lib/compiler/gen-site-desktop-shared.js
++++ b/node_modules/@vant/cli/lib/compiler/gen-site-desktop-shared.js
+@@ -9,6 +9,8 @@ const path_1 = require("path");
+ const fs_extra_1 = require("fs-extra");
+ const common_1 = require("../common");
+ const constant_1 = require("../common/constant");
++const gen_package_style_1 = require("./gen-package-style");
++const { BuildTarget, NodeEnv } = require('@vant/cli/lib/common');
+ function formatName(component, lang) {
+     component = common_1.pascalize(component);
+     if (lang) {
+@@ -62,9 +64,10 @@ function resolveDocuments(components) {
+ function genInstall() {
+     return `import Vue from 'vue';
+ import PackageEntry from './package-entry';
+-import './package-style';
++${process.env.NODE_ENV!=='development' ? 'import \'./package-style\'':gen_package_style_1.genPacakgeStyle({entryType:'js'})};
+ `;
+ }
++
+ function genImportDocuments(items) {
+     return items
+         .map((item) => `import ${item.name} from '${common_1.normalizePath(item.path)}';`)
+diff --git a/node_modules/@vant/cli/lib/compiler/gen-site-mobile-shared.js b/node_modules/@vant/cli/lib/compiler/gen-site-mobile-shared.js
+index 0131253..1c60383 100644
+--- a/node_modules/@vant/cli/lib/compiler/gen-site-mobile-shared.js
++++ b/node_modules/@vant/cli/lib/compiler/gen-site-mobile-shared.js
+@@ -5,10 +5,12 @@ const path_1 = require("path");
+ const fs_extra_1 = require("fs-extra");
+ const constant_1 = require("../common/constant");
+ const common_1 = require("../common");
++const gen_package_style_1 = require("./gen-package-style");
++const css_1 = require('../common/css');
+ function genInstall() {
+     return `import Vue from 'vue';
+ import PackageEntry from './package-entry';
+-import './package-style';
++${process.env.NODE_ENV!=='development' ? 'import \'./package-style\'':gen_package_style_1.genPacakgeStyle({entryType:'js'})};
+ `;
+ }
+ function genImports(demos) {
+diff --git a/node_modules/@vant/cli/lib/compiler/vant-cli-site-plugin.js b/node_modules/@vant/cli/lib/compiler/vant-cli-site-plugin.js
+index 4503328..498b9b8 100644
+--- a/node_modules/@vant/cli/lib/compiler/vant-cli-site-plugin.js
++++ b/node_modules/@vant/cli/lib/compiler/vant-cli-site-plugin.js
+@@ -14,20 +14,27 @@ async function genSiteEntry() {
+     return new Promise((resolve, reject) => {
+         gen_style_deps_map_1.genStyleDepsMap()
+             .then(() => {
+-            gen_package_entry_1.genPackageEntry({
+-                outputPath: constant_1.PACKAGE_ENTRY_FILE,
+-            });
+-            gen_package_style_1.genPacakgeStyle({
+-                outputPath: common_1.replaceExt(constant_1.PACKAGE_STYLE_FILE, `.${css_1.CSS_LANG}`),
+-            });
+-            gen_site_mobile_shared_1.genSiteMobileShared();
+-            gen_site_desktop_shared_1.genSiteDesktopShared();
+-            resolve();
+-        })
++                (async()=>{
++                  gen_package_entry_1.genPackageEntry({
++                    outputPath: constant_1.PACKAGE_ENTRY_FILE,
++                  });
++                  try {
++                    await gen_package_style_1.genPacakgeStyleCssAsync({
++                      outputPath: common_1.replaceExt(constant_1.PACKAGE_STYLE_FILE, `.${css_1.CSS_LANG}`)
++                    });
++                  }catch (err){
++                    console.log(err);
++                  }finally {
++                    gen_site_mobile_shared_1.genSiteMobileShared();
++                    gen_site_desktop_shared_1.genSiteDesktopShared();
++                    resolve();
++                  }
++                })();
++            })
+             .catch(err => {
+-            console.log(err);
+-            reject(err);
+-        });
++                console.log(err);
++                reject(err);
++            });
+     });
+ }
+ exports.genSiteEntry = genSiteEntry;
+@@ -35,8 +42,7 @@ class VantCliSitePlugin {
+     apply(compiler) {
+         if (process.env.NODE_ENV === 'production') {
+             compiler.hooks.beforeCompile.tapPromise(PLUGIN_NAME, genSiteEntry);
+-        }
+-        else {
++        } else {
+             compiler.hooks.watchRun.tapPromise(PLUGIN_NAME, genSiteEntry);
+         }
+     }
+diff --git a/node_modules/@vant/cli/lib/config/webpack.site.dev.js b/node_modules/@vant/cli/lib/config/webpack.site.dev.js
+index 92323dd..aa7d585 100644
+--- a/node_modules/@vant/cli/lib/config/webpack.site.dev.js
++++ b/node_modules/@vant/cli/lib/config/webpack.site.dev.js
+@@ -13,6 +13,25 @@ const webpack_base_1 = require("./webpack.base");
+ const common_1 = require("../common");
+ const vant_cli_site_plugin_1 = require("../compiler/vant-cli-site-plugin");
+ const constant_1 = require("../common/constant");
++function dateFormat(fmt, date) {
++  let ret;
++  const opt = {
++    "Y+": date.getFullYear().toString(),        // 年
++    "m+": (date.getMonth() + 1).toString(),     // 月
++    "d+": date.getDate().toString(),            // 日
++    "H+": date.getHours().toString(),           // 时
++    "M+": date.getMinutes().toString(),         // 分
++    "S+": date.getSeconds().toString()          // 秒
++    // 有其他格式化字符需求可以继续添加，必须转化成字符串
++  };
++  for (let k in opt) {
++    ret = new RegExp("(" + k + ")").exec(fmt);
++    if (ret) {
++      fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, "0")))
++    };
++  };
++  return fmt;
++}
+ function getSiteDevBaseConfig() {
+     const vantConfig = common_1.getVantConfig();
+     const baiduAnalytics = lodash_1.get(vantConfig, 'site.baiduAnalytics');
+@@ -33,6 +52,7 @@ function getSiteDevBaseConfig() {
+     const siteConfig = getSiteConfig();
+     const title = getTitle(siteConfig);
+     const { htmlPluginOptions } = vantConfig.site;
++    const lastModify = dateFormat("YYYY-mm-dd HH:MM:SS", new Date());
+     return webpack_merge_1.merge(webpack_base_1.baseConfig, {
+         entry: {
+             'site-desktop': [path_1.join(__dirname, '../../site/desktop/main.js')],
+@@ -73,8 +93,8 @@ function getSiteDevBaseConfig() {
+                 color: constant_1.GREEN,
+             }),
+             new vant_cli_site_plugin_1.VantCliSitePlugin(),
+-            new html_webpack_plugin_1.default(Object.assign({ title, logo: siteConfig.logo, description: siteConfig.description, chunks: ['chunks', 'site-desktop'], template: path_1.join(__dirname, '../../site/desktop/index.html'), filename: 'index.html', baiduAnalytics }, htmlPluginOptions)),
+-            new html_webpack_plugin_1.default(Object.assign({ title, logo: siteConfig.logo, description: siteConfig.description, chunks: ['chunks', 'site-mobile'], template: path_1.join(__dirname, '../../site/mobile/index.html'), filename: 'mobile.html', baiduAnalytics }, htmlPluginOptions)),
++            new html_webpack_plugin_1.default(Object.assign({ title, logo: siteConfig.logo,lastModify, description: siteConfig.description, chunks: ['chunks', 'site-desktop'], template: path_1.join(__dirname, '../../site/desktop/index.html'), filename: 'index.html', baiduAnalytics }, htmlPluginOptions)),
++            new html_webpack_plugin_1.default(Object.assign({ title, logo: siteConfig.logo,lastModify, description: siteConfig.description, chunks: ['chunks', 'site-mobile'], template: path_1.join(__dirname, '../../site/mobile/index.html'), filename: 'mobile.html', baiduAnalytics }, htmlPluginOptions)),
+         ],
+     });
+ }

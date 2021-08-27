@@ -1,0 +1,13 @@
+@import './mixins/ellipsis';
+
+.pi-play-ellipsis {
+  @include ellipsis();
+}
+
+.pi-play-multi-ellipsis--l2 {
+  @include multi-ellipsis(2);
+}
+
+.pi-play-multi-ellipsis--l3 {
+  @include multi-ellipsis(3);
+}

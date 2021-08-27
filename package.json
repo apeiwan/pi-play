@@ -1,0 +1,78 @@
+{
+  "name": "pi-play",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/pi-play.js",
+  "style": "lib/index.css",
+  "files": [
+    "lib",
+    "es"
+  ],
+  "scripts": {
+    "vant:cli:patches": "yarn patch-package @vant/cli --include lib/",
+    "postinstall": "patch-package",
+    "dev": "vant-cli dev",
+    "lint": "vant-cli lint",
+    "component": "node build/script/component/index.js",
+    "release": "dotenv release-it --",
+    "release:dry:run": "dotenv release-it -- --dry-run",
+    "changelog:file": "dotenv node build/script/changelog.js -- --content file",
+    "changelog:stdout": "dotenv node build/script/changelog.js  -- --content stdout",
+    "build:docs": "dotenv node build/script/docs.js --",
+    "build:docs:upload": "npm run build:docs -- && dotenv node build/upload/docs.js --",
+    "build:library": "dotenv node build/script/library.js -- --mode build",
+    "build:library:npm:upload": "dotenv node build/script/library.js -- --mode npm",
+    "build:library:dist:upload": "dotenv node build/script/library.js -- --mode dist",
+    "build:library:release:upload": "dotenv node build/script/library.js -- --mode release",
+    "build:library:beta:upload": "dotenv node build/script/library.js -- --mode beta"
+  },
+  "author": "",
+  "license": "MIT",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "vant-cli commit-lint"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,vue}": "eslint --fix",
+    "*.{vue,css,less,scss}": "stylelint --fix"
+  },
+  "peerDependencies": {
+    "vue": "^2.6.11",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "devDependencies": {
+    "@vant/cli": "2.11.3",
+    "babel-plugin-import": "^1.13.0",
+    "vue": "^2.6.11",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "browserslist": [
+    "Android >= 4.0",
+    "iOS >= 8"
+  ],
+  "dependencies": {
+    "@apeiwan/ppjsbridge": "^0.1.2",
+    "@commitlint/cli": "^13.1.0",
+    "@commitlint/config-conventional": "^13.1.0",
+    "ali-oss": "^6.16.0",
+    "babel-plugin-transform-require-image-to-url": "^0.1.0",
+    "body-scroll-lock": "^4.0.0-beta.0",
+    "case-anything": "^1.1.3",
+    "conventional-changelog-cli": "^2.1.1",
+    "cssnano": "4.1.10",
+    "cz-conventional-changelog": "^3.3.0",
+    "dayjs": "^1.10.6",
+    "dotenv-cli": "^4.0.0",
+    "fbemitter": "^3.0.0",
+    "file-loader": "^6.2.0",
+    "inquirer": "^8.1.2",
+    "md5-file": "^5.0.0",
+    "patch-package": "^6.4.7",
+    "stylelint-scss": "^3.20.1",
+    "template-file": "^5.1.0",
+    "url-loader": "^4.1.1",
+    "vant": "^2.12.26"
+  }
+}

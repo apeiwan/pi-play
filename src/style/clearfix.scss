@@ -1,0 +1,5 @@
+@import './mixins/clearfix';
+
+.pi-play-clearfix {
+  @include clearfix();
+}

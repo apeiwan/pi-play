@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "before:init": [
+      "npm run lint"
+    ],
+    "before:npm": [
+      "npm run changelog:file",
+      "npm run build:docs:upload",
+      "npm run build:library:npm:upload"
+    ],
+    "after:git:release": "echo After git push, before github release",
+    "after:release": "echo Successfully released ${name} v${version} to ${repo.repository}."
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Release v${version}",
+    "releaseNotes": "npm run changelog:stdout",
+    "tokenRef": "RELEASE_IT_GITHUB_TOKEN"
+  },
+  "git": {
+    "requireCleanWorkingDir": true,
+    "requireBranch": [
+      "master",
+      "main"
+    ],
+    "tagName": "v${version}",
+    "changelog": "npm run changelog:stdout",
+    "commitMessage": "Release v${version}"
+  }
+}

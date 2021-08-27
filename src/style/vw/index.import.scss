@@ -1,0 +1,11 @@
+@use "vw";
+
+@forward "vw" as vw-* hide vw-vw;
+
+@function rem($values...) {
+  @return vw.convert($values...);
+}
+
+@mixin vw($properties, $values...) {
+  @include vw.convert($properties, $values...);
+}

@@ -1,0 +1,9 @@
+@import '../style/var';
+
+.pi-play-icon {
+  &__image {
+    width: 1em;
+    height: 1em;
+    object-fit: contain;
+  }
+}

@@ -1,0 +1,64 @@
+/* CSS PX TO VW 750 */
+.pi-play-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &--unclickable {
+    // lock scroll
+    overflow: hidden;
+
+    // should not add pointer-events: none directly to body tag
+    // that will cause unexpected tap-highlight-color in mobile safari
+    * {
+      pointer-events: none;
+    }
+  }
+
+  &--rect {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  &__indicator-icon {
+    width: 180px;
+    height: 180px;
+    background: {
+      size: 100% 100%;
+      repeat: no-repeat;
+      position: center center;
+    };
+  }
+
+  &__loading-icon {
+    min-width: 124px;
+    min-height: 124px;
+    border-radius: 16px;
+    padding: 0 26px;
+    box-sizing: border-box;
+    background: {
+      color: rgba(0, 0, 0, 0.75);
+      size: 84px 84px;
+      repeat: no-repeat;
+      position: center center;
+    };
+  }
+
+  &--text {
+    font-size: 24px;
+    color: #fff;
+    padding-top: 102px;
+    text-align: center;
+    background: {
+      position: center 20px;
+    };
+  }
+
+  &__message {
+    padding-bottom: 26px;
+  }
+}
