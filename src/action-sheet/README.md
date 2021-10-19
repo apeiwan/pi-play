@@ -8,7 +8,7 @@
 
 ```js
 import Vue from 'vue';
-import { ActionSheet } from 'vant';
+import { ActionSheet } from '@apeiwan/pi-play;
 
 Vue.use(ActionSheet);
 ```
@@ -24,7 +24,7 @@ Vue.use(ActionSheet);
 ```
 
 ```js
-import { Toast } from 'vant';
+import { Toast } from '@apeiwan/pi-play;
 
 export default {
   data() {
@@ -59,7 +59,7 @@ export default {
 ```
 
 ```js
-import { Toast } from 'vant';
+import { Toast } from '@apeiwan/pi-play;
 
 export default {
   data() {

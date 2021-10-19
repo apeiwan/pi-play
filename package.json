@@ -6,7 +6,8 @@
   "style": "lib/index.css",
   "files": [
     "lib",
-    "es"
+    "es",
+    "vetur"
   ],
   "scripts": {
     "vant:cli:patches": "yarn patch-package @vant/cli --include lib/",
@@ -34,6 +35,11 @@
       "commit-msg": "vant-cli commit-lint"
     }
   },
+  "vetur": {
+    "tags": "vetur/tags.json",
+    "attributes": "vetur/attributes.json"
+  },
+  "web-types": "vetur/web-types.json",
   "lint-staged": {
     "*.{ts,tsx,js,jsx,vue}": "eslint --fix",
     "*.{vue,css,less,scss}": "stylelint --fix"

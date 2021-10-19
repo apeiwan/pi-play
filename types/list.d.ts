@@ -1,5 +1,5 @@
-import { VanComponent } from './component';
+import { PiPlayComponent } from './component';
 
-export class List extends VanComponent {
+export class List extends PiPlayComponent {
   check(): void;
 }

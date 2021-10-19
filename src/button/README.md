@@ -8,7 +8,7 @@
 
 ```js
 import Vue from 'vue';
-import { Button } from 'vant';
+import { Button } from '@apeiwan/pi-play;
 
 Vue.use(Button);
 ```

@@ -1,5 +1,5 @@
 /* eslint-disable */
-export class VanPopupMixin {
+export class PiPlayPopupMixin {
   open(): void;
   close(): void;
 }

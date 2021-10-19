@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { VanPopupMixin } from './mixins/popup';
+import { PiPlayPopupMixin } from './mixins/popup';
 
 type ToastMessage = string | number;
 type ToastType = 'text' | 'loading' | 'success' | 'fail' | 'html';
@@ -26,7 +26,7 @@ export type ToastOptions = {
   getContainer?: string | (() => Element);
 };
 
-export interface VanToast extends Vue, VanPopupMixin {
+export interface PiPlayToast extends Vue, PiPlayPopupMixin {
   type: ToastType;
   position: ToastPosition;
   loadingType: ToastLoadingType;
@@ -36,10 +36,10 @@ export interface VanToast extends Vue, VanPopupMixin {
 }
 
 export interface Toast {
-  (message: ToastOptions | ToastMessage, options?: ToastOptions): VanToast;
-  loading(options?: ToastOptions | ToastMessage): VanToast;
-  success(options?: ToastOptions | ToastMessage): VanToast;
-  fail(options?: ToastOptions | ToastMessage): VanToast;
+  (message: ToastOptions | ToastMessage, options?: ToastOptions): PiPlayToast;
+  loading(options?: ToastOptions | ToastMessage): PiPlayToast;
+  success(options?: ToastOptions | ToastMessage): PiPlayToast;
+  fail(options?: ToastOptions | ToastMessage): PiPlayToast;
   clear(all?: boolean): void;
   install(): void;
   setDefaultOptions(

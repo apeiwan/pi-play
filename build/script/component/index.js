@@ -135,5 +135,4 @@ function nameValidate(name) {
   } catch (err) {
     console.warn('err:', err)
   }
-
 })();

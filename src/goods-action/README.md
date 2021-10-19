@@ -33,7 +33,7 @@ Vue.use(GoodsActionIcon);
 ```
 
 ```js
-import { Toast } from 'vant';
+import { Toast } from '@apeiwan/pi-play;
 
 export default {
   methods: {

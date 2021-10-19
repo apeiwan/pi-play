@@ -1,4 +1,4 @@
-import { VanComponent } from './component';
+import { PiPlayComponent } from './component';
 
 type DialogAction = 'confirm' | 'cancel';
 type DialogDone = (close?: boolean) => void;
@@ -36,7 +36,7 @@ export interface Dialog {
   install(): void;
   setDefaultOptions(options: DialogOptions): void;
   resetDefaultOptions(): void;
-  Component: typeof VanComponent;
+  Component: typeof PiPlayComponent;
 }
 
 declare module 'vue/types/vue' {

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-export class VanComponent extends Vue {
+export class PiPlayComponent extends Vue {
   static name: string;
 
   static install(vue: typeof Vue): void;

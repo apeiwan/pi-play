@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { VanPopupMixin } from './mixins/popup';
+import { PiPlayPopupMixin } from './mixins/popup';
 
 type SignMessage = string | number;
 type SignType = 'indicator' | 'loading';
@@ -22,7 +22,7 @@ export type SignOptions = {
   getContainer?: string | (() => Element);
 };
 
-export interface PiPlaySign extends Vue, VanPopupMixin {
+export interface PiPlaySign extends Vue, PiPlayPopupMixin {
   type: SignType;
   position: SignPosition;
   forbidClick: boolean;

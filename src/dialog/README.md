@@ -22,7 +22,7 @@ Dialog({ message: '提示' });
 
 ```js
 import Vue from 'vue';
-import { Dialog } from 'vant';
+import { Dialog } from '@apeiwan/pi-play;
 
 // 全局注册
 Vue.use(Dialog);
