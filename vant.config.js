@@ -117,6 +117,14 @@ module.exports = {
             path: 'sign',
             title: 'Sign 验证',
           },
+          {
+            path: 'vap',
+            title: 'Vap 动效播放',
+          },
+          {
+            path: 'avatar',
+            title: 'Avatar 头像',
+          },
         ],
       },
       {

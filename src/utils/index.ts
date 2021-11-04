@@ -1,3 +1,12 @@
+/*
+ * @Author: 伽蓝
+ * @Date: 2021-10-19 11:30:29
+ * @LastEditTime: 2021-10-20 11:12:21
+ * @LastEditors: 伽蓝
+ * @FilePath: /pi-play/src/utils/index.ts
+ * @Description: 
+ * 代码不规范,调试泪两行
+ */
 import Vue from 'vue';
 
 export { createNamespace, createNamespaceStr } from './create';
@@ -77,3 +86,7 @@ export function isEmpty(value: any): boolean {
 
   return Object.keys(value).length === 0;
 }
+
+export const getUUID = (count=8) => {
+  return 'pi'+ Math.random().toString(36).substring(2, count) + Math.random().toString(36).substring(2, count);
+};
