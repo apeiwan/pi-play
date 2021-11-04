@@ -1,7 +1,7 @@
 <!--
  * @Author: 伽蓝
  * @Date: 2021-10-19 15:09:55
- * @LastEditTime: 2021-10-20 11:15:20
+ * @LastEditTime: 2021-10-20 14:02:45
  * @LastEditors: 伽蓝
  * @FilePath: /pi-play/src/vap/README.md
  * @Description: 
@@ -28,7 +28,7 @@ Vue.use( Vap );
 
 ```html
 
-<pi-vap :cover-img="cover" :vap-url="url" :loop="false" :config="open"></pi-vap>
+<pi-play-vap :cover-img="cover" :vap-url="url" :loop="false" :config="open"></pi-play-vap>
 ```
 
 ## API

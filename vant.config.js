@@ -121,6 +121,10 @@ module.exports = {
             path: 'vap',
             title: 'Vap 动效播放',
           },
+          {
+            path: 'avatar',
+            title: 'Avatar 头像',
+          },
         ],
       },
       {
